@@ -20,7 +20,7 @@ const BottomHandler = ({
   const { visible, toggle, hide } = useModal();
   const emojiRef = useRef<HTMLDivElement | null>(null);
   useClickOutside(emojiRef, hide);
-  const { message, notify } = useToast();
+  const { notify } = useToast();
 
   const [saveChat] = useSaveChatMutation();
   const [uploadImages, setUploadImages] = useState<File[]>([]);

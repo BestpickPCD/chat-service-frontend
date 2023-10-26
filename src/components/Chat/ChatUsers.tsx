@@ -11,21 +11,23 @@ const ChatUsers = ({ roomsData, currentUser, onJoinRoom, onClose }: any) => {
         marginBottom={2}
       >
         <Typography fontWeight={600}>Messages</Typography>
-        <Button
-          sx={{
-            width: "32px",
-            height: "32px",
-            padding: 0,
-            minWidth: "32px",
-            borderRadius: "100%",
-            "&:hover": {
-              backgroundColor: "#e8f1f4",
-            },
-          }}
-          onClick={onClose}
-        >
-          <Close />
-        </Button>
+        {onClose && (
+          <Button
+            sx={{
+              width: "32px",
+              height: "32px",
+              padding: 0,
+              minWidth: "32px",
+              borderRadius: "100%",
+              "&:hover": {
+                backgroundColor: "#e8f1f4",
+              },
+            }}
+            onClick={onClose}
+          >
+            <Close />
+          </Button>
+        )}
       </Box>
       {roomsData?.data?.map((item: any, index: number) => (
         <Box

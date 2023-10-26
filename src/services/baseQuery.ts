@@ -90,14 +90,13 @@ export const baseQueryWithReAuthChat: BaseQueryFn<
       method: "POST",
     };
     try {
-      const refreshResult = await baseQuery(refreshArgs, api, extraOptions);
+      const refreshResult = await baseQueryChat(refreshArgs, api, extraOptions);
       if (refreshResult.data) {
         localStorage.setItem(
           "tokens",
           JSON.stringify({ token: refreshResult.data })
         );
-        result = await baseQuery(args, api, extraOptions);
-        console.log(result);
+        result = await baseQueryChat(args, api, extraOptions);
       } else {
         window.location.href = "/";
         localStorage.removeItem("tokens");

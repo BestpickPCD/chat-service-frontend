@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import moment from "moment";
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import io from "socket.io-client";
 import { useModal, useToast } from "../../utils/hooks";
 import BottomHandler from "./BottomHandler";

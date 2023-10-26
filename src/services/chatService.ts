@@ -1,8 +1,8 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { baseQueryWithoutTokenChat } from "./baseQuery";
+import { baseQueryWithReAuthChat } from "./baseQuery";
 export const ChatService = createApi({
   reducerPath: "ChatService",
-  baseQuery: baseQueryWithoutTokenChat,
+  baseQuery: baseQueryWithReAuthChat,
   endpoints: (builder) => ({
     createRoom: builder.mutation<any, any>({
       query: (body) => ({

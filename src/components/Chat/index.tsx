@@ -62,6 +62,10 @@ const Chat = () => {
     const user = searchParams.get("user");
     if (user) {
       localStorage.setItem("user", user);
+      const userParse = JSON.parse(user);
+      if (userParse.type === "agent") {
+        setCurrentUser(userParse);
+      }
     }
   }, [searchParams]);
 
@@ -111,8 +115,6 @@ const Chat = () => {
       if (currentUser.type === "player") {
         onCreateRoom().then((result: any) => {
           onGetRooms(getRooms, setRooms, setRoom);
-          console.log(result.data);
-
           socketClient.current.emit("new-room", result?.data);
         });
       } else if (currentUser.type === "agent") {
@@ -223,19 +225,23 @@ const Chat = () => {
           )}
         </Box>
         <Box height="100%">
-          <Messages
-            socketClient={socketClient?.current}
-            onOpenImageModal={onOpenImageModal}
-            currentUser={currentUser}
-            room={room}
-          />
-          <BottomHandler
-            currentUser={currentUser}
-            room={room}
-            socketClient={socketClient?.current}
-            updateRoom={updateRoom}
-            refetchRoom={refetchRoom}
-          />
+          {room && (
+            <>
+              <Messages
+                socketClient={socketClient?.current}
+                onOpenImageModal={onOpenImageModal}
+                currentUser={currentUser}
+                room={room}
+              />
+              <BottomHandler
+                currentUser={currentUser}
+                room={room}
+                socketClient={socketClient?.current}
+                updateRoom={updateRoom}
+                refetchRoom={refetchRoom}
+              />
+            </>
+          )}
         </Box>
       </Box>
       <ImageModal

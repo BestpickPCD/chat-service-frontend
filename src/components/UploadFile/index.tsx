@@ -37,6 +37,7 @@ const UploadFile = ({
 }: UploadFileProps): JSX.Element => {
   const [files, setFiles] = useState<File[]>([]);
   const [isDrops, setIsDrop] = useState<boolean>(false);
+  console.log({ files }, { convertedFiles });
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -58,7 +59,7 @@ const UploadFile = ({
 
   useEffect(() => {
     if (convertedFiles) {
-      if (!convertedFiles.files && !convertedFiles.images) {
+      if (!convertedFiles.files.length && !convertedFiles.images.length) {
         setFiles([]);
       }
     }
@@ -78,7 +79,6 @@ const UploadFile = ({
             reader.onload = () => {
               setFiles((prev) => [...prev, file]);
             };
-            // reader.readAsArrayBuffer(file);
             reader.onloadend = () => {
               onConvertedFile((prev) => ({
                 ...prev,

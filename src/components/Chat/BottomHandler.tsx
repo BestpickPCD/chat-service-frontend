@@ -1,6 +1,3 @@
-import UploadFile from "../../components/UploadFile";
-import { useSaveChatMutation } from "../../services/chatService";
-import { useClickOutside, useModal, useToast } from "../../utils/hooks";
 import Picker from "@emoji-mart/react";
 import {
   UploadFile as AttachFile,
@@ -9,20 +6,23 @@ import {
 } from "@mui/icons-material";
 import { Box, Button, TextField, Typography, styled } from "@mui/material";
 import { memo, useEffect, useRef, useState } from "react";
+import UploadFile from "../../components/UploadFile";
+import { useSaveChatMutation } from "../../services/chatService";
+import { useClickOutside, useModal, useToast } from "../../utils/hooks";
+import { LoadingButton } from "@mui/lab";
+
 const BottomHandler = ({
   currentUser,
-  roomId,
+  room,
   socketClient,
   updateRoom,
-  roomsData,
-  refetchRoom,
 }: any) => {
   const { visible, toggle, hide } = useModal();
   const emojiRef = useRef<HTMLDivElement | null>(null);
   useClickOutside(emojiRef, hide);
   const { notify } = useToast();
 
-  const [saveChat] = useSaveChatMutation();
+  const [saveChat, { isLoading }] = useSaveChatMutation();
   const [uploadImages, setUploadImages] = useState<File[]>([]);
   const [uploadFiles, setUploadFiles] = useState<File[]>([]);
   const [chat, setChat] = useState<any>({
@@ -49,37 +49,24 @@ const BottomHandler = ({
   }, []);
 
   const onFocus = async () => {
-    const room = roomsData?.data.find((room: any) => room._id === roomId?._id);
-
-    if (
-      (currentUser?.type === "player" && room?.newGuestMessages) ||
-      (currentUser?.type === "agent" && room?.newUserMessages)
-    ) {
-      await updateRoom({
-        roomId: roomId?._id,
-        ...(currentUser.type === "player"
-          ? { newGuestMessages: 0 }
-          : { newUserMessages: 0 }),
-      })
-        .unwrap()
-        .then(() => {
-          refetchRoom()
-            .unwrap()
-            .then((roomsData: any) => {
-              if (roomsData?.data?.length > 0) {
-                const room = roomsData?.data?.find(
-                  (item: any) => item._id === roomId?._id
-                );
-                socketClient.current.emit("sent-or-seen", {
-                  roomId: room?._id,
-                  newGuestMessages:
-                    currentUser.type === "player" ? 0 : room?.newGuestMessages,
-                  newUserMessages:
-                    currentUser.type === "agent" ? 0 : room?.newUserMessages,
-                });
-              }
+    if (room?._id) {
+      if (
+        (currentUser?.type === "player" && room?.newGuestMessages) ||
+        (currentUser?.type === "agent" && room?.newUserMessages)
+      ) {
+        await updateRoom({
+          roomId: room?._id,
+          ...(currentUser.type === "player"
+            ? { seen: "player" }
+            : { seen: "agent" }),
+        })
+          .unwrap()
+          .then((data: any) => {
+            socketClient.emit("new-messages", {
+              roomId: data.data._id,
             });
-        });
+          });
+      }
     }
   };
 
@@ -104,90 +91,75 @@ const BottomHandler = ({
   };
 
   const handleChat = async () => {
-    if (
-      Boolean(chat.text.trim() || uploadImages.length || uploadFiles.length)
-    ) {
-      const data: any = {
-        text: chat.text,
-        image: uploadImages,
-        file: uploadFiles,
-        userId: currentUser.id,
-        oldText: "",
-        hasRead: false,
-        isUpdated: false,
-        isReply: false,
-        status: "pending",
-        roomId: roomId?._id,
-      };
+    if (room) {
+      if (
+        Boolean(chat.text.trim() || uploadImages.length || uploadFiles.length)
+      ) {
+        const data: any = {
+          text: chat.text,
+          image: uploadImages,
+          file: uploadFiles,
+          userId: currentUser._id,
+          oldText: "",
+          hasRead: false,
+          isUpdated: false,
+          isReply: false,
+          status: "pending",
+          roomId: room?._id,
+          sendBy: currentUser?._id,
+        };
 
-      const { image, file, ...rest } = data;
-      const formData = new FormData();
-      image.forEach((item: any) => formData.append("image", item));
-      file.forEach((item: any) => formData.append("image", item));
-      Object.keys(rest).forEach((item) => formData.append(item, data[item]));
-      try {
-        await saveChat(formData)
-          .unwrap()
-          .then((data: any) => {
-            socketClient.current.emit("messages", {
-              ...data.data,
+        const { image, file, ...rest } = data;
+        console.log({ image }, { file });
+        const formData = new FormData();
+        image.forEach((item: any) => formData.append("image", item));
+        file.forEach((item: any) => formData.append("image", item));
+        Object.keys(rest).forEach((item) => formData.append(item, data[item]));
+        try {
+          await saveChat(formData)
+            .unwrap()
+            .then((data: any) => {
+              socketClient.emit("messages", {
+                ...data.data,
+              });
             });
+
+          await updateRoom({
+            roomId: room?._id,
+            ...(currentUser.type === "player"
+              ? { sent: "player" }
+              : { sent: "agent" }),
+          })
+            .unwrap()
+            .then((data: any) => {
+              socketClient.emit("new-messages", {
+                roomId: data.data._id,
+              });
+            });
+
+          setChat((prev: any) => ({
+            ...prev,
+            text: "",
+          }));
+          setUploadImages([]);
+          setUploadFiles([]);
+          setConvertedFile({
+            files: [],
+            images: [],
           });
-
-        const room = roomsData?.data?.find(
-          (item: any) => item._id === roomId._id
-        );
-
-        await updateRoom({
-          roomId: roomId?._id,
-          ...(currentUser.type === "player"
-            ? { newUserMessages: room?.newUserMessages + 1 }
-            : { newGuestMessages: room?.newGuestMessages + 1 }),
-        })
-          .unwrap()
-          .then((data: any) => {
-            socketClient.current.emit("new-messages", {
-              [`${String(roomId._id)}`]: {
-                roomId: roomId._id,
-                newUserMessages: data?.data?.newUserMessages,
-                newGuestMessages: data?.data?.newGuestMessages,
-              },
-            });
-            socketClient.current.emit("sent-or-seen", {
-              roomId: room?._id,
-              newGuestMessages:
-                currentUser.type === "agent"
-                  ? room?.newGuestMessages + 1
-                  : room?.newGuestMessages,
-              newUserMessages:
-                currentUser.type === "player"
-                  ? room?.newUserMessages + 1
-                  : room?.newUserMessages,
-            });
+          hide();
+        } catch (error: any) {
+          setConvertedFile({
+            files: [],
+            images: [],
           });
-
-        setChat((prev: any) => ({
-          ...prev,
-          text: "",
-        }));
-        setUploadImages([]);
-        setUploadFiles([]);
-        setConvertedFile({
-          files: [],
-          images: [],
-        });
-        hide();
-      } catch (error: any) {
-        setConvertedFile({
-          files: [],
-          images: [],
-        });
-        setUploadImages([]);
-        setUploadFiles([]);
-        notify({
-          type: "error",
-          message: error?.data?.message,
-        });
+          setUploadImages([]);
+          setUploadFiles([]);
+          notify({
+            type: "error",
+            message: error?.data?.message,
+          });
+        }
       }
     }
   };
@@ -243,18 +215,19 @@ const BottomHandler = ({
           onFocus={onFocus}
           multiline={false}
         />
-        <Button
+        <LoadingButton
           onClick={handleChat}
+          loading={isLoading}
           sx={{
             height: "40px",
-            background: "#2c99e2",
+            background: `${!isLoading ? "#2c99e2" : "#a8afb5"}`,
             minWidth: "unset",
             borderRadius: "100%",
             width: "40px",
           }}
         >
           <Send style={{ color: "#fff" }} />
-        </Button>
+        </LoadingButton>
       </Box>
 
       <Box

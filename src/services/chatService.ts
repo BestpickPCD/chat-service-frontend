@@ -4,6 +4,20 @@ export const ChatService = createApi({
   reducerPath: "ChatService",
   baseQuery: baseQueryWithReAuthChat,
   endpoints: (builder) => ({
+    login: builder.mutation<any, any>({
+      query: ({ username, password }) => ({
+        url: "/api/v1/login",
+        method: "POST",
+        body: { username, password },
+      }),
+    }),
+    checkUser: builder.mutation<any, any>({
+      query: (body) => ({
+        url: "/api/v1/check-user",
+        method: "POST",
+        body,
+      }),
+    }),
     createRoom: builder.mutation<any, any>({
       query: (body) => ({
         url: "/api/v1/rooms",
@@ -22,6 +36,11 @@ export const ChatService = createApi({
       query: (params) => ({
         url: "/api/v1/rooms",
         params,
+      }),
+    }),
+    getRoomById: builder.mutation<any, any>({
+      query: ({ id }) => ({
+        url: `/api/v1/rooms/${id}`,
       }),
     }),
     getMessage: builder.query<any, any>({
@@ -47,6 +66,9 @@ export const {
   useCreateRoomMutation,
   useGetMessageQuery,
   useSaveChatMutation,
-  useGetRoomsQuery,
+  useLazyGetRoomsQuery,
   useUpdateRoomMutation,
+  useCheckUserMutation,
+  useLoginMutation,
+  useGetRoomByIdMutation,
 } = ChatService;

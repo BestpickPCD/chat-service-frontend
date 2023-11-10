@@ -1,4 +1,5 @@
 import { ComponentType, Suspense, lazy } from "react";
+import Login from "../modules/Auth/Login";
 
 interface LoaderProps {}
 
@@ -20,6 +21,10 @@ const routes = [
   {
     path: "",
     element: <Chat />,
+  },
+  {
+    path: "/login",
+    element: <Login />,
   },
 ];
 

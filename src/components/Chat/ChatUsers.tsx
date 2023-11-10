@@ -29,49 +29,59 @@ const ChatUsers = ({ roomsData, currentUser, onJoinRoom, onClose }: any) => {
           </Button>
         )}
       </Box>
-      {roomsData?.data?.map((item: any, index: number) => (
-        <Box
-          key={index}
-          onClick={() => onJoinRoom(item)}
-          sx={{ background: "linear-gradient(to right, #5baddd, #b6e3f5)" }}
-          padding="8px 12px"
-          borderRadius="8px"
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          gap="4px"
-          height="48px"
-          maxHeight="48px"
-        >
-          <Typography
-            flex={1}
-            overflow="hidden"
-            textOverflow="ellipsis"
-            whiteSpace="nowrap"
+      <Box
+        display="flex"
+        flexDirection="column"
+        width="100%"
+        height="100%"
+        gap="8px"
+        sx={{ overflowY: "auto" }}
+      >
+        {roomsData?.map((item: any, index: number) => (
+          <Box
+            key={index}
+            onClick={() => onJoinRoom(item)}
+            sx={{
+              background: "linear-gradient(to right, #5baddd, #b6e3f5)",
+              cursor: "pointer  ",
+            }}
+            padding="8px 12px"
+            borderRadius="8px"
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            gap="4px"
+            height="48px"
+            maxHeight="48px"
           >
-            {currentUser?.type === "player"
-              ? item?.guess?.name
-              : item?.username}
-          </Typography>
-          {(currentUser?.type === "player"
-            ? !!item?.newGuestMessages
-            : !!item?.newUserMessages) && (
             <Typography
-              textAlign="center"
-              lineHeight="32px"
-              height="32px"
-              width="32px"
-              borderRadius="100%"
-              color="#fff"
-              sx={{ background: "red" }}
+              flex={1}
+              overflow="hidden"
+              textOverflow="ellipsis"
+              whiteSpace="nowrap"
             >
-              {currentUser?.type === "player"
-                ? item?.newGuestMessages
-                : item?.newUserMessages}
+              {item?.createdBy?.username}
             </Typography>
-          )}
-        </Box>
-      ))}
+            {(currentUser?.type === "player"
+              ? !!item?.newGuestMessages
+              : !!item?.newUserMessages) && (
+              <Typography
+                textAlign="center"
+                lineHeight="32px"
+                height="32px"
+                width="32px"
+                borderRadius="100%"
+                color="#fff"
+                sx={{ background: "red" }}
+              >
+                {currentUser?.type === "player"
+                  ? item?.newGuestMessages
+                  : item?.newUserMessages}
+              </Typography>
+            )}
+          </Box>
+        ))}
+      </Box>
     </LeftBox>
   );
 };

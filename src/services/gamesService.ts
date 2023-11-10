@@ -5,10 +5,13 @@ export const GamesService = createApi({
   baseQuery: baseQueryWithReAuth,
   endpoints: (builder) => ({
     checkUser: builder.mutation<any, any>({
-      query: (body) => ({
+      query: ({ id, header }) => ({
         url: "/user/check-user",
         method: "POST",
-        body,
+        body: { id },
+        headers: {
+          Authorization: "Bearer " + JSON.parse(header)?.token.accessToken,
+        },
       }),
     }),
   }),
